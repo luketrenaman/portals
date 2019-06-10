@@ -1,0 +1,12 @@
+depends: anvilgui
+main: portals.github.com.Main
+name: portals
+version: 1.0
+author: Luke Trenaman
+description: This plugin allows players to construct teleport shrines to make the game feel more vanilla
+commands:
+   home:
+      description: Allow players to teleport to their home shrine
+      usage: /home
+      permission: portals.home
+      permission-message: You don't have permission to use portal shrine homes
