@@ -5,8 +5,13 @@ version: 1.0
 author: Luke Trenaman
 description: This plugin allows players to construct teleport shrines to make the game feel more vanilla
 commands:
+   warp:
+      description: Allow players to teleport to other portal shrines
+      usage: /warp
+      permission: portals.warp
+      permission-message: You don't have permission to use portal shrines
    home:
-      description: Allow players to teleport to their home shrine
+      description: Allow players to teleport to their bed
       usage: /home
       permission: portals.home
-      permission-message: You don't have permission to use portal shrine homes
+      permission-message: You don't have permission to use home

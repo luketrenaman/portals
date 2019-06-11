@@ -52,15 +52,14 @@ public class Main extends JavaPlugin implements Listener {
         Command command,
         String label,
         String[] args) {
-        if (command.getName().equalsIgnoreCase("home")) {
+        if (command.getName().equalsIgnoreCase("warp")) {
         	String pluginFolder = getDataFolder().getAbsolutePath();
         	
-            sender.sendMessage("You ran /home!");
             String[] destination = args;
             sender.sendMessage("Attempting to teleport to " + destination[0] +"...");
             JSONObject main = null;
             //Try to assign JSONObject to the already defined data.
-            //If this fails, catch will initialize it as a brand new JSON Object
+            //If this fails, catch will initialize it asa brand new JSON Object
             JSONParser parser = new JSONParser();
                
             File file = new File(pluginFolder + File.separator + "coordinateData.json");
@@ -87,7 +86,6 @@ public class Main extends JavaPlugin implements Listener {
                 try {
                 	JSONObject coords = (JSONObject) parser.parse((main.get(key).toString()));
                 	long distance = (long) Math.sqrt(Math.pow(x-(long) coords.get("x"),2) +  Math.pow(y-(long) coords.get("y"),2) +  Math.pow(z-(long) coords.get("z"),2));
-					sender.sendMessage(key + ":" + coords.get("x") + ","+ coords.get("y") + ","+ coords.get("z") + "," + distance);
 					if(distance < 5) {
 						dist = true;
 					}
@@ -122,6 +120,22 @@ public class Main extends JavaPlugin implements Listener {
          
             return true;
         }
+        if(command.getName().equalsIgnoreCase("home")) {
+        	Player player = (Player) sender;
+        	if(player.getBedSpawnLocation() != null){ //check if bed location even exists
+        		player.sendMessage("Warping home... This will take 15 seconds.");
+        		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+        		    public void run() {
+        		    	player.teleport(player.getBedSpawnLocation());
+        		    }
+        		}, 20 * 15);
+        		
+        		 
+        		} else {
+        		//no bed exists
+        		player.sendMessage("You have no bed set. Try sleeping in one!");
+        		}
+        }
         return false;
     }
 
@@ -130,12 +144,8 @@ public class Main extends JavaPlugin implements Listener {
     	 if(isValid(x,y,z)) {
     		 
     		 	Location location = new Location(Bukkit.getWorld("world"),x,y,z);
-    	    	System.out.println(location.getBlock().getType().toString());
     	    	if(location.getBlock().getType().toString().equals("SIGN_POST")) {
     	    		Sign s = (Sign) location.getBlock().getState();
-    	    		System.out.println(title);
-    	    		System.out.println(s.getLine(0));
-    	    		System.out.println(s.getLine(1));
     	    		return s.getLine(0).equals("[Portal]") && s.getLine(1).equals(title);
     	    	} else {
     	    		condition = false;
@@ -213,8 +223,8 @@ public class Main extends JavaPlugin implements Listener {
                 }
             }*/
             
-            if (isValidName((long) event.getBlock().getLocation().getX(),(long) event.getBlock().getLocation().getY(),(long) event.getBlock().getLocation().getZ(),event.getLine(1))) {
-                String pluginFolder = getDataFolder().getAbsolutePath();
+            if (isValid((long) event.getBlock().getLocation().getX(),(long) event.getBlock().getLocation().getY(),(long) event.getBlock().getLocation().getZ())) {
+            	String pluginFolder = getDataFolder().getAbsolutePath();
                 JSONObject main;
                 //Try to assign JSONObject to the already defined data.
                 //If this fails, catch will initialize it as a brand new JSON Object
@@ -233,13 +243,14 @@ public class Main extends JavaPlugin implements Listener {
                 coord.put("x", event.getBlock().getX());
                 coord.put("y", event.getBlock().getY());
                 coord.put("z", event.getBlock().getZ());
-                main.put(event.getLines()[1], coord);
                 if(main.get(event.getLine(1)) != null) {
+                	isValidName((long) event.getBlock().getLocation().getX(),(long) event.getBlock().getLocation().getY(),(long) event.getBlock().getLocation().getZ(),event.getLines()[1]);
                     player.sendMessage("The shrine could not be created! Someone else has a portal named " + event.getLine(1));
 
                 	return;
                 }
-                player.sendMessage("Created shrine " + main.get(event.getLine(1)) + ", get to it with /warp " + event.getLine(1));
+                main.put(event.getLines()[1], coord);
+                player.sendMessage("Created shrine " + event.getLine(1) + ", get to it with /warp " + event.getLine(1));
 
                 try {
                     File file = new File(pluginFolder + File.separator + "coordinateData.json");
@@ -255,7 +266,7 @@ public class Main extends JavaPlugin implements Listener {
                 } catch (Exception e) {}
 
             } else {
-                player.sendMessage("The shrine could not be created! Did you make sure to place 8 obsidian in a square around a diamond block?");
+                player.sendMessage("The shrine could not be created! Did you make sure to place 8 obsidian in a square around a gold block?");
             }
 
 
