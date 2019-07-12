@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -55,8 +56,8 @@ public class Main extends JavaPlugin implements Listener {
         if (command.getName().equalsIgnoreCase("warp")) {
         	String pluginFolder = getDataFolder().getAbsolutePath();
         	
-            String[] destination = args;
-            sender.sendMessage("Attempting to teleport to " + destination[0] +"...");
+            String destination = String.join(" ",args);
+            sender.sendMessage("Attempting to teleport to " + destination +"...");
             JSONObject main = null;
             //Try to assign JSONObject to the already defined data.
             //If this fails, catch will initialize it asa brand new JSON Object
@@ -96,14 +97,14 @@ public class Main extends JavaPlugin implements Listener {
             }
             JSONObject coords = null;
 			try {
-				coords = (JSONObject) parser.parse((main.get(destination[0]).toString()));
+				coords = (JSONObject) parser.parse((main.get(destination).toString()));
 			} catch (ParseException e1) {
 				sender.sendMessage("Not a valid portal name!");
 			}
-            if(isValidName((long) coords.get("x"),(long) coords.get("y"), (long) coords.get("z"),destination[0])) {
+            if(isValidName((long) coords.get("x"),(long) coords.get("y"), (long) coords.get("z"),(String) coords.get("world"),destination)) {
 	            if(dist) {
 		            if(player.getInventory().contains(Material.QUARTZ)) {
-						Location location = new Location(Bukkit.getWorld("world"),(long) coords.get("x") + 0.5,(long) coords.get("y"),(long) coords.get("z") + 0.5);
+						Location location = new Location(Bukkit.getWorld((String) coords.get("world")),(long) coords.get("x") + 0.5,(long) coords.get("y"),(long) coords.get("z") + 0.5);
 						player.teleport(location);
 						player.getInventory().removeItem(new ItemStack[] {new ItemStack(Material.getMaterial("QUARTZ"), 1) });
 					} else {
@@ -139,12 +140,18 @@ public class Main extends JavaPlugin implements Listener {
         return false;
     }
 
-     public boolean isValidName(long x, long y, long z, String title) {
+     public boolean isValidName(long x, long y, long z,String world, String title) {
     	 boolean condition = true;
-    	 if(isValid(x,y,z)) {
+    	 if(isValid(x,y,z,world)) {
     		 
-    		 	Location location = new Location(Bukkit.getWorld("world"),x,y,z);
-    	    	if(location.getBlock().getType().toString().equals("SIGN_POST")) {
+    		 	Location location = new Location(Bukkit.getWorld(world),x,y,z);
+    		 	System.out.println(location.getBlock().getType().toString());
+    	    	if(location.getBlock().getType().toString().equals("ACACIA_SIGN")
+    	    		|| location.getBlock().getType().toString().equals("OAK_SIGN")
+    	    		|| location.getBlock().getType().toString().equals("BIRCH_SIGN")
+    	    		|| location.getBlock().getType().toString().equals("SPRUCE_SIGN")
+    	    		|| location.getBlock().getType().toString().equals("DARK_OAK_SIGN")
+    	    		|| location.getBlock().getType().toString().equals("JUNGLE_SIGN")){
     	    		Sign s = (Sign) location.getBlock().getState();
     	    		return s.getLine(0).equals("[Portal]") && s.getLine(1).equals(title);
     	    	} else {
@@ -188,8 +195,8 @@ public class Main extends JavaPlugin implements Listener {
     	 return condition;
      }
      
-    public boolean isValid(long x, long y, long z){
-    	Location location = new Location(Bukkit.getWorld("world"),x,y,z);
+    public boolean isValid(long x, long y, long z,String world){
+    	Location location = new Location(Bukkit.getWorld(world),x,y,z);
     	boolean condition = true;
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
@@ -223,7 +230,7 @@ public class Main extends JavaPlugin implements Listener {
                 }
             }*/
             
-            if (isValid((long) event.getBlock().getLocation().getX(),(long) event.getBlock().getLocation().getY(),(long) event.getBlock().getLocation().getZ())) {
+            if (isValid((long) event.getBlock().getLocation().getX(),(long) event.getBlock().getLocation().getY(),(long) event.getBlock().getLocation().getZ(),(String) event.getPlayer().getLocation().getWorld().getName())) {
             	String pluginFolder = getDataFolder().getAbsolutePath();
                 JSONObject main;
                 //Try to assign JSONObject to the already defined data.
@@ -243,8 +250,9 @@ public class Main extends JavaPlugin implements Listener {
                 coord.put("x", event.getBlock().getX());
                 coord.put("y", event.getBlock().getY());
                 coord.put("z", event.getBlock().getZ());
+                coord.put("world",event.getPlayer().getLocation().getWorld().getName());
                 if(main.get(event.getLine(1)) != null) {
-                	isValidName((long) event.getBlock().getLocation().getX(),(long) event.getBlock().getLocation().getY(),(long) event.getBlock().getLocation().getZ(),event.getLines()[1]);
+                	isValidName((long) event.getBlock().getLocation().getX(),(long) event.getBlock().getLocation().getY(),(long) event.getBlock().getLocation().getZ(),(String) event.getPlayer().getLocation().getWorld().getName(),event.getLines()[1]);
                     player.sendMessage("The shrine could not be created! Someone else has a portal named " + event.getLine(1));
 
                 	return;

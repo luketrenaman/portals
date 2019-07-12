@@ -2,6 +2,7 @@ depends: anvilgui
 main: portals.github.com.Main
 name: portals
 version: 1.0
+api-version: 1.14
 author: Luke Trenaman
 description: This plugin allows players to construct teleport shrines to make the game feel more vanilla
 commands:
